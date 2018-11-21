@@ -14,7 +14,7 @@ module VCAP::CloudController
           raise SetCurrentDropletError.new(e.message)
         end
 
-        web_process = app.web_process
+        web_process = app.oldest_web_process
         previous_deployment = DeploymentModel.find(app: app, state: DeploymentModel::DEPLOYING_STATE)
 
         desired_instances = web_process.instances

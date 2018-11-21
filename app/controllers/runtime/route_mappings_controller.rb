@@ -15,7 +15,7 @@ module VCAP::CloudController
     query_parameters :app_guid, :route_guid
 
     def read(guid)
-      route_mapping = RouteMappingModel.where(guid: guid).eager(:route, :process, app: :space).all.first
+      route_mapping = RouteMappingModel.where(guid: guid).eager(:route, app: :space).all.first
       raise CloudController::Errors::ApiError.new_from_details('RouteMappingNotFound', guid) unless route_mapping && route_mapping.process_type == ProcessTypes::WEB
 
       validate_access(:read, route_mapping)

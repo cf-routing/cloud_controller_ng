@@ -255,8 +255,10 @@ module VCAP::CloudController
 
       before_update(route)
 
-      process = AppModel.find(guid: request_attrs['app']).try(:web_process)
-      raise CloudController::Errors::ApiError.new_from_details('AppNotFound', app_guid) unless process
+      processes = AppModel.find(guid: request_attrs['app']).try(:web_processes)
+      raise CloudController::Errors::ApiError.new_from_details('AppNotFound', app_guid) unless processes
+
+      process = processes.first
 
       begin
         V2::RouteMappingCreate.new(UserAuditInfo.from_context(SecurityContext), route, process, request_attrs, logger).add
@@ -284,8 +286,10 @@ module VCAP::CloudController
 
       before_update(route)
 
-      process = AppModel.find(guid: request_attrs['app']).try(:web_process)
-      raise CloudController::Errors::ApiError.new_from_details('AppNotFound', app_guid) unless process
+      processes = AppModel.find(guid: request_attrs['app']).try(:web_processes)
+      raise CloudController::Errors::ApiError.new_from_details('AppNotFound', app_guid) unless processes
+
+      process = processes.first
 
       route_mapping = RouteMappingModel.find(app: process.app, route: route, process: process)
       RouteMappingDelete.new(UserAuditInfo.from_context(SecurityContext)).delete(route_mapping)

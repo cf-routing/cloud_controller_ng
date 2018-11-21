@@ -1583,6 +1583,22 @@ module VCAP::CloudController
         end
       end
 
+      # context 'when there are multiple web processes' do
+      #   let(:process2) { ProcessModelFactory.make(space: route.space, app: process.app) }
+      #   let!(:route_mapping2) { RouteMappingModel.make(app: process2.app, route: route, process_type: process2.type) }
+      #
+      #   it 'removes all the route mappings' do
+      #     expect(route.reload.apps).to match_array([process, process2])
+      #
+      #     delete "/v2/routes/#{route.guid}/apps/#{process.app.guid}"
+      #     expect(last_response.status).to eq(204)
+      #
+      #     expect(route.reload.apps).to be_empty
+      #     expect(route_mapping.exists?).to be_falsey
+      #     expect(route_mapping2.exists?).to be_falsey
+      #   end
+      # end
+
       context 'when the user is not a SpaceDeveloper' do
         before do
           set_current_user(User.make)
