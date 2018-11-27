@@ -94,12 +94,12 @@ module VCAP::CloudController
         app.processes.select(&:web?)
       end
 
-      def is_web_process?(process)
-        process.type == ProcessTypes::WEB
+      def is_original_web_process?(process)
+        process == app.oldest_web_process
       end
 
       def is_intermediary_process?(process)
-        !is_web_process?(process)
+        !is_original_web_process?(process)
       end
 
       def scale_down_oldest_web_process_with_instances
@@ -112,7 +112,7 @@ module VCAP::CloudController
 
         # only one instance left...
 
-        if is_web_process?(process)
+        if is_original_web_process?(process)
           # decrement original web process instances, but do not destroy it yet
           process.update(instances: 0)
         else

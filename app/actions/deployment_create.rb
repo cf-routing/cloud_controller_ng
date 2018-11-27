@@ -50,11 +50,9 @@ module VCAP::CloudController
       private
 
       def create_deployment_process(app, deployment_guid, web_process, revision)
-        process_type = "web-deployment-#{deployment_guid}"
-
         process = ProcessModel.create(
           app: app,
-          type: process_type,
+          type: ProcessTypes::WEB,
           state: ProcessModel::STARTED,
           command: web_process.command,
           memory: web_process.memory,

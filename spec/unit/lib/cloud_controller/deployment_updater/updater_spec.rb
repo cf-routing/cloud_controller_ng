@@ -19,7 +19,7 @@ module VCAP::CloudController
     let!(:deploying_web_process) do
       ProcessModel.make(
         app: web_process.app,
-        type: 'web-deployment-guid-final',
+        type: ProcessTypes::WEB,
         instances: current_deploying_instances,
         guid: 'guid-final',
         revision: revision,
@@ -87,7 +87,7 @@ module VCAP::CloudController
           ProcessModel.make(
             app: web_process.app,
             created_at: an_hour_ago,
-            type: 'web-deployment-guid-interim',
+            type: ProcessTypes::WEB,
             instances: 1,
             guid: 'interim-guid'
           )
@@ -202,7 +202,7 @@ module VCAP::CloudController
             instances: 1,
             app: app,
             created_at: a_day_ago - 10,
-            type: 'web-deployment-middle-train-car'
+            type: ProcessTypes::WEB,
           )
         end
 
@@ -361,7 +361,7 @@ module VCAP::CloudController
           ProcessModel.make(
             app: app,
             created_at: an_hour_ago,
-            type: 'web-deployment-guid-interim',
+            type: ProcessTypes::WEB,
             instances: 1,
             guid: 'guid-interim'
           )
