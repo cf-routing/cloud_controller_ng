@@ -237,8 +237,6 @@ module Google
       optional :string, :swift_prefix, 39
       optional :string, :php_class_prefix, 40
       optional :string, :php_namespace, 41
-      optional :string, :php_metadata_namespace, 44
-      optional :string, :ruby_package, 45
       repeated ::Google::Protobuf::UninterpretedOption, :uninterpreted_option, 999
       # Extension Fields
       extensions 1000...536870912

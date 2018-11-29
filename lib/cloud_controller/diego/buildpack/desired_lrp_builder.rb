@@ -21,7 +21,7 @@ module VCAP::CloudController
         end
 
         def cached_dependencies
-          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1' && @checksum_algorithm == 'sha256'
+          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1'
 
           lifecycle_bundle_key = "buildpack/#{@stack}".to_sym
           lifecycle_bundle = @config.get(:diego, :lifecycle_bundles)[lifecycle_bundle_key]
@@ -43,7 +43,7 @@ module VCAP::CloudController
         end
 
         def setup
-          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1' && @checksum_algorithm == 'sha256'
+          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1'
 
           serial([
             ::Diego::Bbs::Models::DownloadAction.new(
@@ -58,7 +58,7 @@ module VCAP::CloudController
         end
 
         def image_layers
-          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) != 'oci-phase-1' || @checksum_algorithm != 'sha256'
+          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) != 'oci-phase-1'
 
           lifecycle_bundle_key = "buildpack/#{@stack}".to_sym
           lifecycle_bundle = @config.get(:diego, :lifecycle_bundles)[lifecycle_bundle_key]
@@ -74,7 +74,7 @@ module VCAP::CloudController
               layer_type: ::Diego::Bbs::Models::ImageLayer::Type::EXCLUSIVE,
               media_type: ::Diego::Bbs::Models::ImageLayer::MediaType::TGZ,
               digest_value: @checksum_value,
-              digest_algorithm: ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm::SHA256,
+              digest_algorithm: ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm.fetch(@checksum_algorithm.upcase),
             ),
             ::Diego::Bbs::Models::ImageLayer.new(
               name: "buildpack-#{@stack}-lifecycle",

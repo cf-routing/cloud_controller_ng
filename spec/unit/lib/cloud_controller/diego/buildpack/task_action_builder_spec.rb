@@ -17,7 +17,13 @@ module VCAP::CloudController
             }
           })
         end
-        let(:task) { TaskModel.make command: command, name: 'my-task' }
+        let(:task) do
+          TaskModel.make(
+            command: command,
+            name: 'my-task',
+            droplet: DropletModel.make(droplet_hash: 'some_droplet_hash'),
+          )
+        end
         let(:command) { 'echo "hello"' }
 
         let(:generated_environment) do
@@ -84,7 +90,7 @@ module VCAP::CloudController
                 cache_key: '',
                 user: 'vcap',
                 checksum_algorithm: 'sha1',
-                checksum_value: task.droplet.droplet_hash,
+                checksum_value: 'some_droplet_hash',
               )
             end
 
@@ -112,32 +118,15 @@ module VCAP::CloudController
               expect(result.run_action).to eq(run_task_action)
             end
 
-            context 'and the droplet does not have a sha256 checksum' do
-              let(:download_app_droplet_action) do
-                ::Diego::Bbs::Models::DownloadAction.new(
-                  from: download_uri,
-                  to: '.',
-                  cache_key: '',
-                  user: 'vcap',
-                  checksum_algorithm: 'sha1',
-                  checksum_value: task.droplet.droplet_hash,
-                )
-              end
-
+            context 'and the droplet has a sha1 checksum' do
               before do
                 task.droplet.sha256_checksum = nil
                 task.droplet.save
               end
 
-              it 'creates a action to download the droplet' do
+              it 'does not include the download step in the action' do
                 result = builder.action
-
-                serial_action = result.serial_action
-                actions       = serial_action.actions
-
-                expect(actions.length).to eq(2)
-                expect(actions[0].download_action).to eq(download_app_droplet_action)
-                expect(actions[1].run_action).to eq(run_task_action)
+                expect(result.run_action).to eq(run_task_action)
               end
             end
           end
@@ -150,17 +139,6 @@ module VCAP::CloudController
 
           context 'when temporary_oci_buildpack_mode is set to oci-phase-1' do
             let(:temporary_oci_buildpack_mode) { 'oci-phase-1' }
-
-            context 'and the droplet does not have a sha256 checksum' do
-              before do
-                task.droplet.sha256_checksum = nil
-                task.droplet.save
-              end
-
-              it 'returns nil' do
-                expect(builder.image_layers).to be_nil
-              end
-            end
 
             it 'creates a image layer for each cached dependency' do
               expect(builder.image_layers).to include(
@@ -197,6 +175,28 @@ module VCAP::CloudController
                 }.to raise_error VCAP::CloudController::Diego::LifecycleBundleUriGenerator::InvalidStack
               end
             end
+
+            context 'and the droplet has a sha1 checksum' do
+              before do
+                task.droplet.sha256_checksum = nil
+                task.droplet.save
+              end
+
+              it 'creates a image layer for the droplet' do
+                expect(builder.image_layers).to include(
+                  ::Diego::Bbs::Models::ImageLayer.new(
+                    name: 'droplet',
+                    url: lifecycle_data[:droplet_uri],
+                    destination_path: '/home/vcap',
+                    layer_type: ::Diego::Bbs::Models::ImageLayer::Type::EXCLUSIVE,
+                    media_type: ::Diego::Bbs::Models::ImageLayer::MediaType::TGZ,
+                    digest_value: 'some_droplet_hash',
+                    digest_algorithm: ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm::SHA1,
+                  )
+                )
+              end
+            end
+
           end
         end
 

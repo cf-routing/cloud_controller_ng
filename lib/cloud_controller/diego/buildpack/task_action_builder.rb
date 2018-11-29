@@ -40,7 +40,7 @@ module VCAP::CloudController
             env: task_environment_variables
           )
 
-          if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1' && task.droplet.sha256_checksum
+          if @config.get(:diego, :temporary_oci_buildpack_mode) == 'oci-phase-1'
             ::Diego::ActionBuilder.action(run_action)
           else
             serial([
@@ -51,7 +51,15 @@ module VCAP::CloudController
         end
 
         def image_layers
-          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) != 'oci-phase-1' || !task.droplet.sha256_checksum
+          return nil if @config.get(:diego, :temporary_oci_buildpack_mode) != 'oci-phase-1'
+
+          if task.droplet.sha256_checksum
+            digest_algorithm = ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm::SHA256
+            digest_value = task.droplet.sha256_checksum
+          else
+            digest_algorithm = ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm::SHA1
+            digest_value = task.droplet.droplet_hash
+          end
 
           [
             ::Diego::Bbs::Models::ImageLayer.new(
@@ -60,8 +68,8 @@ module VCAP::CloudController
               destination_path: '/home/vcap',
               layer_type: ::Diego::Bbs::Models::ImageLayer::Type::EXCLUSIVE,
               media_type: ::Diego::Bbs::Models::ImageLayer::MediaType::TGZ,
-              digest_value: task.droplet.sha256_checksum,
-              digest_algorithm: ::Diego::Bbs::Models::ImageLayer::DigestAlgorithm::SHA256,
+              digest_value: digest_value,
+              digest_algorithm: digest_algorithm,
             ),
             ::Diego::Bbs::Models::ImageLayer.new(
               name: "buildpack-#{lifecycle_stack}-lifecycle",

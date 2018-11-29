@@ -23,6 +23,7 @@ module Diego
           define :DigestAlgorithmInvalid, 0
           define :SHA256, 1
           define :SHA512, 2
+          define :SHA1, 3
         end
 
         class MediaType < ::Protobuf::Enum
